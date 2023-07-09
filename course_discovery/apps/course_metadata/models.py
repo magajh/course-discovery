@@ -26,6 +26,7 @@ from elasticsearch.exceptions import RequestError
 from elasticsearch_dsl.query import Q as ESDSLQ
 from localflavor.us.us_states import CONTIGUOUS_STATES
 from model_utils import FieldTracker
+from multi_email_field.fields import MultiEmailField
 from multiselectfield import MultiSelectField
 from opaque_keys.edx.keys import CourseKey
 from parler.models import TranslatableModel, TranslatedFieldsModel
@@ -1372,6 +1373,12 @@ class Course(DraftModelMixin, PkSearchableMixin, CachedMixin, TimeStampedModel):
         default=False,
         verbose_name='Excluded From SEO (noindex tag)',
         help_text=_('If checked, the About Page will have a meta tag with noindex value')
+    )
+    
+    watchers =  MultiEmailField(
+        blank=True,
+        verbose_name=_("Email"),
+        help_text=_("The email(s), one per line, where the report should be sent.")
     )
 
     # Changing these fields at the course level will not trigger re-reviews
