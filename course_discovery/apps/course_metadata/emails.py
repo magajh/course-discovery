@@ -169,6 +169,7 @@ def send_email_to_legal(course_run, template_name, subject, context=None):
     to_users = User.objects.filter(groups__name=LEGAL_TEAM_GROUP_NAME)
     send_email(template_name, subject, to_users, _('legal team'), context=context, course_run=course_run)
 
+
 def send_email_to_watchers(course, template_name, subject, context=None):
     """ Send a specific email template to all watchers for a course.
 
@@ -242,7 +243,7 @@ def send_email_for_course_url(course, course_run_publish_date, course_run_status
     subject = _('Course URL for {title}').format(title=course.title)
     context = {
         'marketing_service_name': settings.MARKETING_SERVICE_NAME,
-        'course_publish_date': course_run_publish_date.strftime("%m/%d/%Y"),
+        'course_publish_date': course_run_publish_date.strftime("%m/%d/%Y") if course_run_publish_date else 'N/A',
         'is_course_published': course_run_status == CourseRunStatus.Published,
     }
 

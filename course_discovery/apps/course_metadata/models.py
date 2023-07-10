@@ -1374,11 +1374,11 @@ class Course(DraftModelMixin, PkSearchableMixin, CachedMixin, TimeStampedModel):
         verbose_name='Excluded From SEO (noindex tag)',
         help_text=_('If checked, the About Page will have a meta tag with noindex value')
     )
-    
-    watchers =  MultiEmailField(
+
+    watchers = MultiEmailField(
         blank=True,
-        verbose_name=_("Email"),
-        help_text=_("The email(s), one per line, where the report should be sent.")
+        verbose_name=_("Watchers"),
+        help_text=_("Email addresses of users who are watching this course"),
     )
 
     # Changing these fields at the course level will not trigger re-reviews
@@ -2526,8 +2526,8 @@ class CourseRun(DraftModelMixin, CachedMixin, TimeStampedModel):
 
         if send_emails and email_method:
             email_method(self)
-            if (self.course.watchers and self.status == CourseRunStatus.Published or
-                    self.status == CourseRunStatus.Reviewed):
+            if (self.course.watchers and (self.status == CourseRunStatus.Published or
+                    self.status == CourseRunStatus.Reviewed)):
                 emails.send_email_for_course_url(self.course, self.go_live_date, self.status)
 
     def _check_enterprise_subscription_inclusion(self):

@@ -1286,7 +1286,7 @@ class CourseSerializer(TaggitSerializer, MinimalCourseSerializer):
     location_restriction = CourseLocationRestrictionSerializer(required=False)
     in_year_value = ProductValueSerializer(required=False)
     product_source = serializers.SlugRelatedField(required=False, slug_field='slug', queryset=Source.objects.all())
-    watchers  = serializers.ListField(
+    watchers = serializers.ListField(
         child=serializers.EmailField()
     )
 
