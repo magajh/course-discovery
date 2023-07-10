@@ -2526,8 +2526,8 @@ class CourseRun(DraftModelMixin, CachedMixin, TimeStampedModel):
 
         if send_emails and email_method:
             email_method(self)
-            if (self.course.watchers and (self.status == CourseRunStatus.Published or
-                    self.status == CourseRunStatus.Reviewed)):
+            # pylint: disable=line-too-long
+            if (self.course.watchers and (self.status == CourseRunStatus.Published or self.status == CourseRunStatus.Reviewed)):
                 emails.send_email_for_course_url(self.course, self.go_live_date, self.status)
 
     def _check_enterprise_subscription_inclusion(self):
