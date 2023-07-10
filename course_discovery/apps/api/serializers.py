@@ -1180,7 +1180,7 @@ class MinimalCourseSerializer(FlexFieldsSerializerMixin, TimestampModelSerialize
         model = Course
         fields = ('key', 'uuid', 'title', 'course_runs', 'entitlements', 'owners', 'image',
                   'short_description', 'type', 'url_slug', 'course_type', 'enterprise_subscription_inclusion',
-                  'excluded_from_seo', 'excluded_from_search', 'watchers')
+                  'excluded_from_seo', 'excluded_from_search')
 
 
 class CourseEditorSerializer(serializers.ModelSerializer):
@@ -1287,7 +1287,7 @@ class CourseSerializer(TaggitSerializer, MinimalCourseSerializer):
     in_year_value = ProductValueSerializer(required=False)
     product_source = serializers.SlugRelatedField(required=False, slug_field='slug', queryset=Source.objects.all())
     watchers = serializers.ListField(
-        child=serializers.EmailField()
+        child=serializers.EmailField(), allow_empty=True, allow_null=True, required=False
     )
 
     def to_representation(self, instance):
@@ -1357,7 +1357,7 @@ class CourseSerializer(TaggitSerializer, MinimalCourseSerializer):
             'url_slug_history', 'url_redirects', 'course_run_statuses', 'editors', 'collaborators', 'skill_names',
             'skills', 'organization_short_code_override', 'organization_logo_override_url',
             'enterprise_subscription_inclusion', 'geolocation', 'location_restriction', 'in_year_value',
-            'product_source', 'data_modified_timestamp', 'excluded_from_search', 'excluded_from_seo'
+            'product_source', 'data_modified_timestamp', 'excluded_from_search', 'excluded_from_seo', 'watchers',
         )
         read_only_fields = ('enterprise_subscription_inclusion', 'product_source', 'data_modified_timestamp')
         extra_kwargs = {
