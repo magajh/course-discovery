@@ -1180,7 +1180,7 @@ class MinimalCourseSerializer(FlexFieldsSerializerMixin, TimestampModelSerialize
         model = Course
         fields = ('key', 'uuid', 'title', 'course_runs', 'entitlements', 'owners', 'image',
                   'short_description', 'type', 'url_slug', 'course_type', 'enterprise_subscription_inclusion',
-                  'excluded_from_seo', 'excluded_from_search')
+                  'excluded_from_seo', 'excluded_from_search', 'watchers')
 
 
 class CourseEditorSerializer(serializers.ModelSerializer):
@@ -1286,6 +1286,9 @@ class CourseSerializer(TaggitSerializer, MinimalCourseSerializer):
     location_restriction = CourseLocationRestrictionSerializer(required=False)
     in_year_value = ProductValueSerializer(required=False)
     product_source = serializers.SlugRelatedField(required=False, slug_field='slug', queryset=Source.objects.all())
+    watchers  = serializers.ListField(
+        child=serializers.EmailField()
+    )
 
     def to_representation(self, instance):
         """
