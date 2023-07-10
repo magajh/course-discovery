@@ -12,6 +12,7 @@ from django.utils.translation import gettext as _
 from opaque_keys.edx.keys import CourseKey
 
 from course_discovery.apps.core.models import User
+from course_discovery.apps.course_metadata.choices import CourseRunStatus
 from course_discovery.apps.publisher.choices import InternalUserRole
 from course_discovery.apps.publisher.constants import LEGAL_TEAM_GROUP_NAME
 from course_discovery.apps.publisher.utils import is_email_notification_enabled
@@ -127,6 +128,8 @@ def send_email(template_name, subject, to_users, recipient_name,
             'platform_name': settings.PLATFORM_NAME,
             'org_name': org.name,
             'contact_us_email': project_coordinator.email,
+            'course_marketing_url': course.marketing_url,
+            'course_preview_url': f'{course.partner.marketing_site_url_root}/preview/{course.active_url_slug}',
         })
     if context:
         base_context.update(context)
@@ -165,6 +168,18 @@ def send_email_to_legal(course_run, template_name, subject, context=None):
     """
     to_users = User.objects.filter(groups__name=LEGAL_TEAM_GROUP_NAME)
     send_email(template_name, subject, to_users, _('legal team'), context=context, course_run=course_run)
+
+def send_email_to_watchers(course, template_name, subject, context=None):
+    """ Send a specific email template to all watchers for a course.
+
+        Arguments:
+            course (Object): Course object
+            template_name (str): path to template without filename extension
+            subject (str): subject line for the email
+            context (dict): additional context for the template
+    """
+    to_users = course.watchers
+    send_email(template_name, subject, to_users, _('watchers'), context=context, course=course)
 
 
 def send_email_to_project_coordinator(course_run, template_name, subject, context=None):
@@ -218,6 +233,20 @@ def send_email_for_legal_review(course_run):
     """
     subject = _('Legal review requested: {title}').format(title=course_run.title)
     send_email_to_legal(course_run, 'course_metadata/email/legal_review', subject)
+
+
+def send_email_for_course_url(course, course_run_publish_date, course_run_status):
+    """
+    Send email to the watchers of the course when the course run is scheduled or published.
+    """
+    subject = _('Course URL for {title}').format(title=course.title)
+    context = {
+        'marketing_service_name': settings.MARKETING_SERVICE_NAME,
+        'course_publish_date': course_run_publish_date.strftime("%m/%d/%Y"),
+        'is_course_published': course_run_status == CourseRunStatus.Published,
+    }
+
+    send_email_to_watchers(course, 'course_metadata/email/watchers_course_preview_url', subject, context=context)
 
 
 def send_email_for_internal_review(course_run):
