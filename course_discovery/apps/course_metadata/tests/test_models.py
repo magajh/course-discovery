@@ -946,6 +946,55 @@ class CourseRunTests(OAuth2Mixin, TestCase):
                 assert run.announcement is None
                 assert mock_email.call_count == 1
 
+    @ddt.data(
+        (None, False),
+        (datetime.datetime.now(pytz.UTC) + datetime.timedelta(days=10), False),
+        (datetime.datetime.now(pytz.UTC) - datetime.timedelta(days=10), True),
+    )
+    @ddt.unpack
+    @mock.patch('course_discovery.apps.course_metadata.emails.send_email_for_reviewed')
+    @mock.patch('course_discovery.apps.course_metadata.emails.send_email_for_course_url')
+    def test_reviewed_with_go_live_date_along_with_watchers_email(
+        self, when, published, mock_course_url_email, mock_email
+    ):
+        """
+        Test that watchers are emailed when a course is reviewed and has a go live date
+        """
+        draft = factories.CourseRunFactory(
+            draft=True,
+            go_live_date=when,
+            announcement=None,
+        )
+        end = when + datetime.timedelta(days=50) if when else None
+        if end:  # Both end and enrollment_end need to be in the future or else runs will be set to unpublished
+            draft.end = end
+            draft.enrollment_end = end
+        draft.course.draft = True
+        draft.course.watchers = [
+            'test@test.com',
+        ]
+        draft.course.save()
+
+        # force this prop to be cached, to catch any errors if we assume .official_version is valid after creation
+        assert draft.official_version is None
+
+        draft.status = CourseRunStatus.Reviewed
+        draft.save()
+        draft.refresh_from_db()
+        official_version = CourseRun.objects.get(key=draft.key)
+
+        for run in [draft, official_version]:
+            if published:
+                assert run.status == CourseRunStatus.Published
+                assert run.announcement is not None
+                assert mock_course_url_email.call_count == 1
+                assert mock_email.call_count == 0
+            else:
+                assert run.status == CourseRunStatus.Reviewed
+                assert run.announcement is None
+                assert mock_course_url_email.call_count == 1
+                assert mock_email2.call_count == 1
+
     def test_publish_ignores_draft_input(self):
         draft = factories.CourseRunFactory(status=CourseRunStatus.Unpublished, draft=True)
         assert not draft.publish()

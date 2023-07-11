@@ -128,8 +128,6 @@ def send_email(template_name, subject, to_users, recipient_name,
             'platform_name': settings.PLATFORM_NAME,
             'org_name': org.name,
             'contact_us_email': project_coordinator.email,
-            'course_marketing_url': course.marketing_url,
-            'course_preview_url': f'{course.partner.marketing_site_url_root}/preview/{course.active_url_slug}',
         })
     if context:
         base_context.update(context)
@@ -180,7 +178,25 @@ def send_email_to_watchers(course, template_name, subject, context=None):
             context (dict): additional context for the template
     """
     to_users = course.watchers
-    send_email(template_name, subject, to_users, _('watchers'), context=context, course=course)
+    txt_template = f'{template_name}.txt'
+    html_template = f'{template_name}.html'
+    template = get_template(txt_template)
+    plain_content = template.render(context)
+    template = get_template(html_template)
+    html_content = template.render(context)
+
+    email_msg = EmailMultiAlternatives(
+        subject, plain_content, settings.PUBLISHER_FROM_EMAIL, to_users
+    )
+    email_msg.attach_alternative(html_content, 'text/html')
+
+    try:
+        email_msg.send()
+    except Exception as exc:  # pylint: disable=broad-except
+        logger.exception(
+            'Failed to send email notification for template %s, with subject "%s" to watchers %s: %s',
+            template_name, subject, to_users, exc
+        )
 
 
 def send_email_to_project_coordinator(course_run, template_name, subject, context=None):
@@ -242,12 +258,15 @@ def send_email_for_course_url(course, course_run_publish_date, course_run_status
     """
     subject = _('Course URL for {title}').format(title=course.title)
     context = {
+        'course_name': course.title,
         'marketing_service_name': settings.MARKETING_SERVICE_NAME,
         'course_publish_date': course_run_publish_date.strftime("%m/%d/%Y") if course_run_publish_date else 'N/A',
         'is_course_published': course_run_status == CourseRunStatus.Published,
+        'course_marketing_url': course.marketing_url,
+        'course_preview_url': f'{course.partner.marketing_site_url_root}/preview/{course.active_url_slug}',
     }
 
-    send_email_to_watchers(course, 'course_metadata/email/watchers_course_preview_url', subject, context=context)
+    send_email_to_watchers(course, 'course_metadata/email/watchers_course_url', subject, context=context)
 
 
 def send_email_for_internal_review(course_run):

@@ -147,6 +147,22 @@ class EmailTests(TestCase):
             ],
         )
 
+    def test_send_email_for_course_url(self):
+        """
+        Verify that send_email_for_course_url's happy path works as expected
+        """
+        test_course_run = CourseRunFactory(course=self.course, status=CourseRunStatus.Published)
+        self.course.watchers = ['test@test.com']
+        self.course.save()
+        emails.send_email_for_course_url(self.course, test_course_run.go_live_date, test_course_run.status)
+        email = mail.outbox[0]
+
+        assert email.to == self.course.watchers
+        assert str(email.subject) == f'Course URL for {self.course.title}'
+        assert len(mail.outbox) == 1
+        assert email.alternatives[0][1] == 'text/html'
+
+
     def test_send_email_for_internal_review(self):
         """
         Verify that send_email_for_internal_review's happy path works as expected
