@@ -92,6 +92,19 @@ class TestCourse(TestCase):
         course.image = None
         assert course.image_url == course.card_image_url
 
+    def test_watchers(self):
+        """
+        Verify watchers field is properly set and returns correct list of watchers emails addresses
+        """
+        course = factories.CourseFactory()
+        assert course.watchers == []
+        assert len(course.watchers) == 0
+
+        course.watchers.append('test@test.com')
+        course.save()
+        course.refresh_from_db()
+        assert course.watchers == ['test@test.com']
+
     @ddt.data(
         ('https://www.example.com', 'test-slug', 'https://www.example.com/course/test-slug'),
         # pylint: disable=line-too-long
