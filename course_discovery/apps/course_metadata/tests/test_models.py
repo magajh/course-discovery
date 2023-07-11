@@ -992,8 +992,8 @@ class CourseRunTests(OAuth2Mixin, TestCase):
             else:
                 assert run.status == CourseRunStatus.Reviewed
                 assert run.announcement is None
+                assert mock_email.call_count == 1
                 assert mock_course_url_email.call_count == 1
-                assert mock_email2.call_count == 1
 
     def test_publish_ignores_draft_input(self):
         draft = factories.CourseRunFactory(status=CourseRunStatus.Unpublished, draft=True)

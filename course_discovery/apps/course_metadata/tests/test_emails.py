@@ -162,7 +162,6 @@ class EmailTests(TestCase):
         assert len(mail.outbox) == 1
         assert email.alternatives[0][1] == 'text/html'
 
-
     def test_send_email_for_internal_review(self):
         """
         Verify that send_email_for_internal_review's happy path works as expected
