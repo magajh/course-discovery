@@ -1388,6 +1388,7 @@ class Course(DraftModelMixin, PkSearchableMixin, CachedMixin, TimeStampedModel):
         'geolocation',
         'in_year_value',
         'location_restriction',
+        'watchers'
     ]
 
     everything = CourseQuerySet.as_manager()
